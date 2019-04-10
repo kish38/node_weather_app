@@ -1,37 +1,21 @@
-const request = require("request")
 const fs = require("fs")
+const geocode = require('./utils/geocode')
+const forecast = require('./utils/weather')
 
-const buffer = fs.readFileSync("creds.jsn")
+const buffer = fs.readFileSync("creds.json")
 const creds = JSON.parse(buffer.toString())
 
-const url = "https://api.darksky.net/forecast/"+creds.weather_api_key+"/37.8267,-122.4233"
 
-request({url: url, json: true}, (error, response) => {
-    // console.log(response)
+geocode(creds, "India", (error, data)=>{
     if (error){
-        console.log("Unable to connect to weather servie")
-    } else if (response.body.error){
-        // console.log(response.body.error)
-        console.log("Unable to find the location")
-    } else{
-        console.log("It is Currently "+ response.body.currently.temperature+ " degrees out. There is a "+response.body.currently.precipProbability+ ' percent chance of rain')
+        return console.log("Error:", error)
     }
-})
 
-const address = "India"
-const geocode_url = 'https://api.mapbox.com/geocoding/v5/mapbox.places/' + address + '.json?access_token='+creds.geo_api_key+'&limit=1'
-
-// Geo coding api.mapbox.com
-
-request({url: geocode_url, json: true}, (error, response) => {
-    if (error){
-        console.log("Unable to connect to weather servie")
-    } else if (response.body.features.length === 0){
-        // console.log(response.body.error)
-        console.log("Unable to find the location. Try another search")
-    } else{
-        const lat = response.body.features[0].center[0]
-        const lan = response.body.features[0].center[0]
-        console.log(lat, lan)
-    }
+    forecast(creds, {latitude: data.latitude, longitude: data.longitude}, (error, forecaset_data)=>{
+        if(error){
+            return console.log(error)
+        }
+        console.log(data.location)
+        console.log(forecaset_data)
+    })
 })
